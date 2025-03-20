@@ -1,3 +1,16 @@
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM fully loaded!"); // Debugging line
+
+    // Event listener for button click
+    document.getElementById("simulateBtn").addEventListener("click", simulateMatch);
+
+    // Load match history from localStorage on page load
+    displayMatchHistory();
+});
+
+// Retrieve match history from localStorage or initialize an empty array
+let matchHistory = JSON.parse(localStorage.getItem("matchHistory")) || [];
+
 // Function to get team names from the user
 function getTeamNames() {
     let team1 = document.getElementById("team1").value.trim();
@@ -28,16 +41,38 @@ function generateScores() {
 function displayResult(team1, team2, score1, score2) {
     let resultElement = document.getElementById("result");
     resultElement.innerHTML = `${team1} <strong>${score1}</strong> - <strong>${score2}</strong> ${team2}`;
-    
-    if (score1 > score2) {
-        resultElement.classList.add("win");
-        resultElement.classList.remove("loss");
-    } else if (score1 < score2) {
-        resultElement.classList.add("loss");
-        resultElement.classList.remove("win");
-    } else {
-        resultElement.classList.remove("win", "loss");
+}
+
+// Function to update match history
+function updateMatchHistory(team1, team2, score1, score2) {
+    let match = { team1, team2, score1, score2 };
+    matchHistory.push(match); // Add new match to the history
+    console.log(matchHistory,"match")
+    // Store updated match history in localStorage
+    localStorage.setItem("matchHistory", JSON.stringify(matchHistory));
+
+    // Refresh the displayed match history
+    displayMatchHistory();
+}
+
+// Function to display match history in HTML
+function displayMatchHistory() {
+    let historyElement = document.getElementById("history");
+    historyElement.innerHTML = "<h2>Match History</h2>";
+
+    if (matchHistory.length === 0) {
+        historyElement.innerHTML += "<p>No matches played yet.</p>";
+        return;
     }
+
+    let list = document.createElement("ul");
+    matchHistory.forEach(match => {
+        let listItem = document.createElement("li");
+        listItem.textContent = `${match.team1} ${match.score1} - ${match.score2} ${match.team2}`;
+        list.appendChild(listItem);
+    });
+
+    historyElement.appendChild(list);
 }
 
 // Function to simulate a match
@@ -51,7 +86,5 @@ function simulateMatch() {
     const { score1, score2 } = generateScores();
     
     displayResult(team1, team2, score1, score2);
+    updateMatchHistory(team1, team2, score1, score2);
 }
-
-// Event listener for button click
-document.getElementById("simulateBtn").addEventListener("click", simulateMatch);
